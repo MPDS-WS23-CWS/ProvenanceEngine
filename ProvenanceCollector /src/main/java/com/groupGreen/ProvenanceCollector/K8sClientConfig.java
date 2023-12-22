@@ -1,3 +1,5 @@
+package com.groupGreen.ProvenanceCollector;
+
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.Configuration;
 import io.kubernetes.client.util.ClientBuilder;
@@ -11,7 +13,7 @@ public class K8sClientConfig {
 
         @Bean
         public ApiClient apiClient() throws Exception {
-                Apiclient client = ClientBuilder.standard().build();
+                ApiClient client = ClientBuilder.standard().build();
                 Configuration.setDefaultApiClient(client);
                 return client;
         }
