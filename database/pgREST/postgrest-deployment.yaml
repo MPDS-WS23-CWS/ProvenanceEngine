@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgrest-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgrest
+  template:
+    metadata:
+      labels:
+        app: postgrest
+    spec:
+      containers:
+      - name: postgrest
+        image: postgrest/postgrest
+        env:
+        - name: PGRST_DB_URI
+          value: "postgres://testUser:testPassword@postgresdb.default:5432/testDB"
+        - name: PGRST_DB_SCHEMA
+          value: "public"
+        - name: PGRST_DB_ANON_ROLE
+          value: "testUser"
+        # Add other environment variables as needed
