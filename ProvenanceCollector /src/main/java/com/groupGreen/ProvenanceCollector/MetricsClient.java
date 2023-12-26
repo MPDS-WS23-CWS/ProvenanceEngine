@@ -153,7 +153,7 @@ public class MetricsClient {
 
                     List<Double> curValues = new ArrayList<>();
                     JSONArray valuesArray = result.getJSONObject(i).getJSONArray("values");
-                    for (int j = 0; i < valuesArray.length(); i++) {
+                    for (int j = 0; j < valuesArray.length(); j++) {
                         JSONArray dataPoint = valuesArray.getJSONArray(j);
                         if(dataPoint.getDouble(0) < endTime) {
                             curValues.add(dataPoint.getDouble(1));
