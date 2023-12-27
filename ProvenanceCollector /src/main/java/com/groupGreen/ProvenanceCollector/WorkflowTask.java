@@ -28,10 +28,10 @@ public class WorkflowTask {
         setCompletionTime(completionTime);
     }
 
-    public String getMetricsAsJson() {
-        // TODO implement
-        // return { "process": "RNASEQ", "cpu": 0.40, "mem": 0.10}
-    }
+//    public String getMetricsAsJson() {
+//        // TODO implement
+//        // return { "process": "RNASEQ", "cpu": 0.40, "mem": 0.10}
+//    }
 
     public void putMetric(String metric, Object value) {
         metrics.put(metric, value);

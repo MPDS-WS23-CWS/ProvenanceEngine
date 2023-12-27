@@ -17,7 +17,7 @@ public class ProvenanceCollectorApplication {
 //        metricsClient.fetchInstantMetrics();
 //        metricsClient.fetchRangeMetrics();
 
-        metricsClient.fetchTaskMetadata();
+        metricsClient.fetchNewData();
 
     }
 
