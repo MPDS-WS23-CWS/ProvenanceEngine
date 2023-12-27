@@ -24,6 +24,8 @@ public class MetricsClient {
     @Value("${metrics.range.profiles}")
     private String [] rangeQueries;
 
+    private String prometheusRange = "72h";
+
     private List<String> returnedTasks = new ArrayList<>();
 
     public MetricsClient(WebClient.Builder webClientBuilder) {
@@ -69,7 +71,7 @@ public class MetricsClient {
     }
 
     private List<WorkflowTask> fetchNewlyCompletedTasks() {
-        String query = "last_over_time(kube_pod_completion_time{}[30h])";
+        String query = String.format("last_over_time(kube_pod_completion_time{}[%s])", prometheusRange);
         String uriVariable = "{pod=~'nf-.*'}";
         String result = queryPrometheusBlocking(query, uriVariable);
         Map<String, Long> completionTimes = parseTimes(result);
@@ -88,7 +90,7 @@ public class MetricsClient {
     }
 
     private void fetchStartTimes(List<WorkflowTask> tasks) {
-        String query = "last_over_time(kube_pod_start_time{}[72h])";
+        String query = String.format("last_over_time(kube_pod_start_time{}[%s])", prometheusRange);
         String uriVariable = "{pod=~'nf-.*'}";
         String result = queryPrometheusBlocking(query, uriVariable);
         Map<String, Long> startTimes = parseTimes(result);
@@ -97,7 +99,7 @@ public class MetricsClient {
     }
 
     private void fetchProcessNames(List<WorkflowTask> tasks) {
-        String query = "last_over_time(kube_pod_labels{}[72h])";
+        String query = String.format("last_over_time(kube_pod_labels{}[%s])", prometheusRange);
         String uriVariable = "{pod=~'nf-.*'}";
         String result = queryPrometheusBlocking(query, uriVariable);
         Map<String, String> processNames = parseProcessNames(result);
@@ -107,7 +109,7 @@ public class MetricsClient {
 
     private void fetchMetric(List<WorkflowTask> tasks) {
         // TODO this is just an example with one metric
-        String query = "sum by(pod)(avg_over_time(container_cpu_usage_seconds_total[72h]))";
+        String query = String.format("sum by(pod)(avg_over_time(container_cpu_usage_seconds_total[%s]))", prometheusRange);
         String result = queryPrometheusBlocking(query);
         Map<String, Double> metric = parseMetric(result);
 
@@ -194,5 +196,5 @@ public class MetricsClient {
         }
         return values;
     }
-    
+
 }
