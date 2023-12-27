@@ -3,6 +3,7 @@ package com.groupGreen.ProvenanceCollector;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Setter
@@ -17,7 +18,7 @@ public class WorkflowTask {
 
     private long completionTime = -1;
 
-    private Map<String, Object> metrics;
+    private Map<String, Object> metrics = new HashMap<>();
 
     public WorkflowTask(String pod) {
         setPod(pod);
@@ -38,7 +39,7 @@ public class WorkflowTask {
     }
 
     public String toString() {
-        return "{processName: " + getProcessName() + ", startTime: " + getStartTime() + ", endTime: " + getCompletionTime() + "}";
+        return "{pod: " + getPod() + ", processName: " + getProcessName() + ", startTime: " + getStartTime() + ", endTime: " + getCompletionTime() + ", metrics: " + getMetrics() + "}";
     }
 
     public boolean startTimeSet () {

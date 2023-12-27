@@ -24,9 +24,7 @@ public class MetricsClient {
     @Value("${metrics.range.profiles}")
     private String [] rangeQueries;
 
-    private Map<String, WorkflowTask> workflowTasks = new HashMap<>();
-//    private Map<String, WorkflowTask> newlyCompletedTasks = new HashMap<>();
-    private Map<String, WorkflowTask> transmittedTasks =  new HashMap<>();
+    private List<String> returnedTasks = new ArrayList<>();
 
     public MetricsClient(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.build();
@@ -59,53 +57,62 @@ public class MetricsClient {
 //
 //    }
 
-
-
     public List<WorkflowTask> fetchNewData() {
-        Map<String, WorkflowTask> newlyCompletedTasks = fetchNewlyCompletedTasks();
+        List<WorkflowTask> newlyCompletedTasks = fetchNewlyCompletedTasks();
         fetchStartTimes(newlyCompletedTasks);
         fetchProcessNames(newlyCompletedTasks);
+        fetchMetric(newlyCompletedTasks);
 
-        return (List<WorkflowTask>) newlyCompletedTasks.values();
+        List<String> pods = newlyCompletedTasks.stream().map(WorkflowTask::getPod).toList();
+        returnedTasks.addAll(pods);
+        return newlyCompletedTasks;
     }
 
-    private Map<String, WorkflowTask> fetchNewlyCompletedTasks() {
-        String query = "last_over_time(kube_pod_completion_time{pod=~'nf-.*'}[10h])";
-//        String query = "last_over_time%28kube_pod_completion_time%7Bpod%3D%7E%27nf-.%2A%27%7D%5B10h%5D%29";
-        String result = queryPrometheusBlocking(query);
+    private List<WorkflowTask> fetchNewlyCompletedTasks() {
+        String query = "last_over_time(kube_pod_completion_time{}[30h])";
+        String uriVariable = "{pod=~'nf-.*'}";
+        String result = queryPrometheusBlocking(query, uriVariable);
         Map<String, Long> completionTimes = parseTimes(result);
 
         // filter out tasks already written to db
         Map<String, Long> newCompletionTimes = completionTimes.entrySet()
                 .stream()
-                .filter(e -> ! transmittedTasks.containsKey(e.getKey()))
+                .filter(e -> ! returnedTasks.contains(e.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        // construct map of WorkflowTask objects
+        // construct list of WorkflowTask objects
         return newCompletionTimes.entrySet()
                 .stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        e -> new WorkflowTask(e.getKey(), e.getValue())
-                ));
+                .map(e -> new WorkflowTask(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
     }
 
-    private void fetchStartTimes(Map<String, WorkflowTask> tasks) {
-        String query = "last_over_time(kube_pod_start_time{pod=~'nf-.*'}[72h])";
-        String result = queryPrometheusBlocking(query);
+    private void fetchStartTimes(List<WorkflowTask> tasks) {
+        String query = "last_over_time(kube_pod_start_time{}[72h])";
+        String uriVariable = "{pod=~'nf-.*'}";
+        String result = queryPrometheusBlocking(query, uriVariable);
         Map<String, Long> startTimes = parseTimes(result);
 
-        tasks.forEach((k, v) -> v.setStartTime(startTimes.get(k)));
+        tasks.forEach(t -> t.setStartTime(startTimes.get(t.getPod())));
     }
 
-    private void fetchProcessNames(Map<String, WorkflowTask> tasks) {
-        String query = "kube_pod_labels{pod=~'nf-.*'}[72h])";
-        String result = queryPrometheusBlocking(query);
+    private void fetchProcessNames(List<WorkflowTask> tasks) {
+        String query = "last_over_time(kube_pod_labels{}[72h])";
+        String uriVariable = "{pod=~'nf-.*'}";
+        String result = queryPrometheusBlocking(query, uriVariable);
         Map<String, String> processNames = parseProcessNames(result);
 
-        tasks.forEach((k, v) -> v.setProcessName(processNames.get(k)));
+        tasks.forEach(t -> t.setProcessName(processNames.get(t.getPod())));
     }
 
+    private void fetchMetric(List<WorkflowTask> tasks) {
+        // TODO this is just an example with one metric
+        String query = "sum by(pod)(avg_over_time(container_cpu_usage_seconds_total[72h]))";
+        String result = queryPrometheusBlocking(query);
+        Map<String, Double> metric = parseMetric(result);
+
+        tasks.forEach(t -> t.putMetric(query, metric.get(t.getPod())));
+    }
 
     private String queryPrometheusBlocking(String query) {
         String url = prometheusServerUrl + "?query=" + query;
@@ -115,26 +122,15 @@ public class MetricsClient {
                 .bodyToMono(String.class)
                 .block();
     }
-
-
-//    public void fetchTaskMetadata(){
-//        String labelsJson = queryPrometheusBlocking("kube_pod_labels{pod=~'nf-.*'}[72h]");
-//        parseProcessNames(labelsJson);
-//        String startTimesJson = queryPrometheusBlocking("last_over_time(kube_pod_start_time{pod=~'nf-.*'}[72h])");
-//        parseTimes(startTimesJson);
-//        String endTimesJson = queryPrometheusBlocking("last_over_time(kube_pod_completion_time{pod=~'nf-.*'}[10h])");
-//        parseTimes(endTimesJson);
-//
-//        for (String name: workflowTasks.keySet()) {
-//            WorkflowTask value = workflowTasks.get(name);
-//            System.out.println(name + " " + value);
-//        }
-//
-//        String cpuUsageJson = queryPrometheusBlocking("container_cpu_usage_seconds_total[72h]");
-//        System.out.println(parseMetric(cpuUsageJson));
-//    }
-
-
+    private String queryPrometheusBlocking(String query, String uriVariable) {
+        String url = prometheusServerUrl + "?query=" + query;
+        return webClient.get()
+                // TODO filtering via uriVariable doesn't work as expected
+                .uri(url, uriVariable)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+    }
 
     private Map<String, String> parseProcessNames(String jsonString) {
         Map<String, String> processNames = new HashMap<>();
@@ -145,11 +141,14 @@ public class MetricsClient {
         for (int i = 0; i < result.length(); i++) {
             JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
             String pod = metric.getString("pod");
-            String processName = metric.getString("label_process_name");
 
-            processNames.put(pod, processName);
+            // TODO Filtering of NF pods via uriVariable doesn't work as expected
+            //  therefore we have to filter here. need to fix this
+            if(pod.startsWith("nf-")) {
+                String processName = metric.getString("label_process_name");
+                processNames.put(pod, processName);
+            }
         }
-
         return processNames;
     }
 
@@ -163,79 +162,37 @@ public class MetricsClient {
             JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
             String pod = metric.getString("pod");
 
-            long completionTime = result.getJSONObject(i).getJSONArray("value").getLong(1);
-            times.put(pod, completionTime);
+            // TODO Filtering of NF pods via uriVariable doesn't work as expected
+            //  therefore we have to filter here. need to fix this
+            if(pod.startsWith("nf-")) {
+                long completionTime = result.getJSONObject(i).getJSONArray("value").getLong(1);
+                times.put(pod, completionTime);
+            }
         }
         return times;
     }
 
-//    private void parseTimes(String jsonString) {
-//        JSONObject jsonObject = new JSONObject(jsonString);
-//        JSONArray result = jsonObject.getJSONObject("data").getJSONArray("result");
-//        for (int i = 0; i < result.length(); i++) {
-//            JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
-//
-//            if (metric.has("pod") && metric.getString("pod").startsWith("nf-")){
-//                String pod = metric.getString("pod");
-//                JSONArray values = result.getJSONObject(i).getJSONArray("values");
-//                // there can be multiple entries in values but they should all have the same start/end time value
-//                // check this as a sanity check?
-//                long firstValue = values.getJSONArray(0).getLong(1);
-//
-//                if (workflowTasks.containsKey(pod)) {
-//                    WorkflowTask task = workflowTasks.get(pod);
-//                    if (metric.getString("__name__").equals("kube_pod_start_time")) {
-//                        task.setStartTime(firstValue);
-//                    } else if (metric.getString("__name__").equals("kube_pod_completion_time")) {
-//                        task.setCompletionTime(firstValue);
-//                    }
-//                } else {
-//                    // TODO proper logging
-//                    System.out.println("Warning - Task not found: " + pod);
-//                }
-//            }
-//        }
-//    }
+    // TODO Check if data type double is okay for all metrics
+    private Map<String, Double> parseMetric(String jsonString) {
+        Map<String, Double> values = new HashMap<>();
 
-//    private Map<String, List<Double>> parseMetric(String jsonString) {
-//        Map<String, List<Double>> values = new HashMap<>();
-//
-//        JSONObject jsonObject = new JSONObject(jsonString);
-//        JSONArray result = jsonObject.getJSONObject("data").getJSONArray("result");
-//        for (int i = 0; i < result.length(); i++) {
-//            JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
-//
-//            // we use label "container" instead of "pod", as there might be multiple containers
-//            // within a nextflow pod (e.g. k8s pause container)
-//            if (metric.has("container")) {
-//                String container = metric.getString("container");
-//
-//                if (container.startsWith("nf-") && workflowTasks.containsKey(container)){
-//
-//                    WorkflowTask task = workflowTasks.get(container);
-//
-//                    // we only have to check that values were scraped before endTime
-//                    long endTime = task.getCompletionTime();
-//                    // if we don't have a value for endTime, we don't know which data points to use
-//                    if(!task.endTimeSet()) {continue;}
-//
-//                    List<Double> curValues = new ArrayList<>();
-//                    JSONArray valuesArray = result.getJSONObject(i).getJSONArray("values");
-//                    for (int j = 0; j < valuesArray.length(); j++) {
-//                        JSONArray dataPoint = valuesArray.getJSONArray(j);
-//                        System.out.println(dataPoint.getDouble(1));
-//                        if(dataPoint.getDouble(0) < endTime) {
-//                            curValues.add(dataPoint.getDouble(1));
-//                        } else {
-//                            // all following data points will be newer, i.e. irrelevant
-//                            break;
-//                        }
-//                    }
-//                    values.put(container, curValues);
-//                }
-//            }
-//        }
-//        return values;
-//    }
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray result = jsonObject.getJSONObject("data").getJSONArray("result");
 
+        for (int i = 0; i < result.length(); i++) {
+            JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
+
+            // TODO Filtering of NF pods via uriVariable doesn't work as expected
+            //  therefore we have to filter here. need to fix this
+            if(metric.has("pod")) {
+                String pod = metric.getString("pod");
+                if (pod.startsWith("nf-")) {
+                    double completionTime = result.getJSONObject(i).getJSONArray("value").getDouble(1);
+                    values.put(pod, completionTime);
+                }
+            }
+        }
+        return values;
+    }
+    
 }
