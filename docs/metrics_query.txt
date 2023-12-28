@@ -1,0 +1,167 @@
+Pod table: name; uid; label;start_time;end_time; runtime;ass_node; cpu_avg;cpu_min;cpu_max; mem_avg; mem_min; mem_max; mem_requested; cpu_requested;
+
+
+Node table: name; cpu_avg; cpu_max; cpu_min; mem_avg; mem_min; mem_max; pods;
+
+------POD/CONTAINER RESOURCES------
+
+---CPU USAGE---
+-METRIC NAME-
+#note "container_cpu_usage_seconds_total" is a counter, so you'll want to read up on what that means and how to query a counter. 
+https://stackoverflow.com/questions/66057517/how-to-get-cpu-and-memory-usage-of-nodes-pods-in-prometheus
+
+container_cpu_usage_seconds_total
+
+#giving CPU usage over last 1h in "cws" namespace, we would put in endtime-starttime probably
+PROMQL:
+sum by(pod)(max_over_time(container_cpu_usage_seconds_total{namespace="cws"}[1h]))
+
+sum by(pod)(min_over_time(container_cpu_usage_seconds_total{namespace="cws"}[1h]))
+
+sum by(pod)(avg_over_time(container_cpu_usage_seconds_total{namespace="cws"}[1h]))
+
+#all that needs to be changed is "xxx_over_time" for min/avg/max, take out "sum by()" for more info
+
+
+---MEMORY USED---
+-METRIC NAME-
+container_memory_working_set_bytes
+container_memory_max_usage_bytes
+container_memory_usage_bytes
+
+PROMQL:
+sum by(pod)(max_over_time(container_memory_working_set_bytes{namespace="cws"}[1h]))
+
+#all that needs to be changes is "xxx_over_time" for min/avg/max, take out "sum by()" for more info
+
+
+
+------POD INFO------
+#If we want to get start end time through prometheus:
+
+---Pod Lifetime---
+-Metric NAME
+kube_pod_created
+kube_pod_completion_time
+
+PROMQL:
+Start time:
+sum by(pod,uid)(kube_pod_created{namespace="cws"})
+
+Completion time:
+sum by(pod,uid)(kube_pod_completion_time{namespace="cws"})
+
+Specific pod:
+sum by(pod,uid)(kube_pod_created{namespace="cws", uid="96ae7716-895e-4e88-b214-802524d6020f"})
+
+---general Pod Info---
+-Metric Name
+kube_pod_info
+
+PROMQL:
+#all pods in namespace="cws"
+kube_pod_info{namespace="cws"}
+
+#less JSON information, node to see on which node it ran
+sum by(namespace,node,pod,uid) kube_pod_info{namespace="cws"}
+
+---Requested Resource Info---
+-Metric Name
+kube_pod_container_resource_requests
+
+PROMQL:
+sum by(pod, uid, unit) (kube_pod_container_resource_requests{namespace="cws"})
+
+
+
+---Termination Info---
+-METRIC NAME-
+kube_pod_container_status_last_terminated_reason
+
+PROMQL:
+#specific pod by "uid"
+sum by(reason, uid) (kube_pod_container_status_last_terminated_reason{uid="..."})
+
+#all pods 
+sum by(reason, uid,pod) (kube_pod_container_status_last_terminated_reason)
+
+#might be worth a look
+sum by(uid, phase)(kube_pod_status_phase)
+
+
+------NODE INFO------
+---CPU USAGE---
+-METRIC NAME-
+node_cpu_seconds_total
+
+PROMQL:
+#dont quite understand output
+node_cpu_seconds_total
+
+---CPU ALLOCATABLE RESOURCES---
+-METRIC NAME-
+kube_node_status_allocatable
+
+PROMQL:
+#get allocatable bytes
+sum by(node, unit) (kube_node_status_allocatable{resource="memory"})  
+
+#get allocatable cpus 
+sum by(node, unit) (kube_node_status_allocatable{resource="cpu"})
+
+---RUNNING PODS---
+-METRIC NAME-
+kubelet_active_pods
+
+PROMQL:
+sum by(instance) (kubelet_active_pods)
+
+
+---Maybe---
+node_cpu_scaling_frequency_hertz
+node_cpu_frequency_max_hertz
+
+
+SEE: https://stackoverflow.com/questions/61751232/prometheus-docker-determine-available-memory-per-node-which-metric-is-correc
+Do we need to do the math?
+
+node_memory_MemFree_bytes
+node_memory_Buffers_bytes
+node_memory_MemTotal_bytes
+
+
+
+---------
+#kind of metrics we will need
+avg((avg (container_memory_working_set_bytes{pod="prometheus-deployment-5549c769cc-8wjdf"}) by (container_name , pod ))/ on (container_name , pod)(avg (container_spec_memory_limit_bytes>0 ) by (container_name, pod))*100)
+
+
+#https://stackoverflow.com/questions/48835035/average-memory-usage-query-prometheus
+100 * (1 - ((avg_over_time(node_memory_MemFree[24h]) + avg_over_time(node_memory_Cached[24h]) + avg_over_time(node_memory_Buffers[24h])) / avg_over_time(node_memory_MemTotal[24h])))
+
+
+100 - (avg by (instance) (rate(node_cpu{job="node",mode="idle"}[5m])) * 100)
+
+
+CPU Usage for Linux (Node)
+
+#Average
+100 - (avg by (instance) (irate(node_cpu_seconds_total{job="$job",mode="idle"}[5m])) * 100)
+#Minimum
+100 - (max by (instance) (irate(node_cpu_seconds_total{job="$job",mode="idle"}[5m])) * 100)
+#Maximum
+100 - (min by (instance) (irate(node_cpu_seconds_total{job="$job",mode="idle"}[5m])) * 100
+
+
+Memory Usage for Linux (Node)
+
+#Avarege:
+100 * (1 - ((avg_over_time(node_memory_MemFree_bytes{job=~"prod"}[30d]) + avg_over_time(node_memory_Cached_bytes{job=~"prod"}[30d]) + avg_over_time(node_memory_Buffers_bytes{job=~"prod"}[30d])) / avg_over_time(node_memory_MemTotal_bytes{job=~"prod"}[30d])))
+
+#Maximum:
+100 * (1 - ((min_over_time(node_memory_MemFree_bytes{job=~"prod"}[30d]) + min_over_time(node_memory_Cached_bytes{job=~"prod"}[30d]) + min_over_time(node_memory_Buffers_bytes{job=~"prod"}[30d])) / min_over_time(node_memory_MemTotal_bytes{job=~"prod"}[30d])))
+
+#Minimum
+100 * (1 - ((max_over_time(node_memory_MemFree_bytes{job=~"prod"}[30d]) + max_over_time(node_memory_Cached_bytes{job=~"prod"}[30d]) + max_over_time(node_memory_Buffers_bytes{job=~"prod"}[30d])) / max_over_time(node_memory_MemTotal_bytes{job=~"prod"}[30d])))
+
+Note:- {job=~"prod"}, is account name. you can use your account names
