@@ -32,33 +32,6 @@ public class MetricsClient {
         this.webClient = webClientBuilder.build();
     }
 
-//    public void fetchInstantMetrics() {
-//        List<String> metrics = Arrays.asList(instantQueries);
-//
-//        for (String query : metrics) {
-//            String url = prometheusServerUrl + "?query=" + query;
-//            webClient.get()
-//                    .uri(url)
-//                    .retrieve()
-//                    .bodyToMono(String.class)
-//                    .subscribe(responseBody -> System.out.println("Response from server: " + responseBody));
-//    }
-//
-//}
-//    public void fetchRangeMetrics() {
-//        List<String> metrics = Arrays.asList(rangeQueries);
-//
-//        for (String query : metrics) {
-//            String url = prometheusServerUrl + "?query=" + query;
-//            webClient.get()
-//                    .uri(url)
-//                    .retrieve()
-//                    .bodyToMono(String.class)
-//                    .subscribe(responseBody -> System.out.println("Response from server: " + responseBody));
-//        }
-//
-//    }
-
     public List<WorkflowTask> fetchNewData() {
         List<WorkflowTask> newlyCompletedTasks = fetchNewlyCompletedTasks();
         fetchStartTimes(newlyCompletedTasks);

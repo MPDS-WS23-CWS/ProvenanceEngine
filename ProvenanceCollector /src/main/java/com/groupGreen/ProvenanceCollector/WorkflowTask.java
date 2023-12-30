@@ -10,6 +10,8 @@ import java.util.Map;
 @Getter
 public class WorkflowTask {
 
+    // TODO: add fields like workflowID, nodeAssigned, terminationReason and whatever is needed as metadata
+
     private String pod;
 
     private String processName;
@@ -29,6 +31,7 @@ public class WorkflowTask {
         setCompletionTime(completionTime);
     }
 
+//  Lets evaluate if the row format with is how we process the data
 //    public String getMetricsAsJson() {
 //        // TODO implement
 //        // return { "process": "RNASEQ", "cpu": 0.40, "mem": 0.10}
