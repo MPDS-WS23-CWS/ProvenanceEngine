@@ -1,5 +1,3 @@
-
-
 CREATE TABLE IF NOT EXISTS workflows (
 	workflow_id INT PRIMARY KEY,
 	name VARCHAR(255),
@@ -15,7 +13,6 @@ CREATE TABLE IF NOT EXISTS tasks (
 	task_id INT,
 	workflow_id INT,
 	pod_name VARCHAR(255),
-	pod_uid VARCHAR(255),
 	start_time TIMESTAMP,
 	end_time TIMESTAMP,
 	completed BOOLEAN,
@@ -30,7 +27,6 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE TABLE IF NOT EXISTS resources (
     resource_id SERIAL PRIMARY KEY,
     task_id INT,
-    pod_name VARCHAR(255),
     node_name VARCHAR(255),
     cpu_avg DOUBLE PRECISION,
     cpu_min DOUBLE PRECISION,
