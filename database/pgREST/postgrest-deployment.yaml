@@ -17,7 +17,7 @@ spec:
         image: postgrest/postgrest
         env:
         - name: PGRST_DB_URI
-          value: "postgres://testUser:testPassword@postgresdb.default:5432/testDB"
+          value: "postgres://testUser:testPassword@postgresdb.database.svc.cluster.local:5432/testDB"
         - name: PGRST_DB_SCHEMA
           value: "public"
         - name: PGRST_DB_ANON_ROLE

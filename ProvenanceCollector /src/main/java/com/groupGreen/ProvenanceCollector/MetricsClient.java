@@ -18,12 +18,13 @@ public class MetricsClient {
     @Value("${prometheus.server.url}")
     private String prometheusServerUrl;
 
+/*    
     @Value("${metrics.instant.profiles}")
     private String [] instantQueries;
 
     @Value("${metrics.range.profiles}")
     private String [] rangeQueries;
-
+*/
     private String prometheusRange = "72h";
 
     private List<String> returnedTasks = new ArrayList<>();
