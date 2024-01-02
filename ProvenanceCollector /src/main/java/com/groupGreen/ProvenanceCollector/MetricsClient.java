@@ -19,10 +19,10 @@ public class MetricsClient {
     private String prometheusServerUrl;
 
 /*    
-    @Value("${metrics.instant.profiles}")
-    private String [] instantQueries;
-
-    @Value("${metrics.range.profiles}")
+    @Value("${metrics.pod.profiles}")
+    private String [] podQueries;
+/*
+    @Value("${metrics.node.profiles}")
     private String [] rangeQueries;
 */
     private String prometheusRange = "72h";
@@ -81,9 +81,20 @@ public class MetricsClient {
         tasks.forEach(t -> t.setProcessName(processNames.get(t.getPod())));
     }
 
-    private void fetchMetric(List<WorkflowTask> tasks) {
+    /*private void fetchMetric(List<WorkflowTask> tasks) {
         // TODO this is just an example with one metric
         String query = String.format("sum by(pod)(avg_over_time(container_cpu_usage_seconds_total[%s]))", prometheusRange);
+        String result = queryPrometheusBlocking(query);
+        Map<String, Double> metric = parseMetric(result);
+
+        tasks.forEach(t -> t.putMetric(query, metric.get(t.getPod())));
+    }
+    */
+    
+    private void fetchMetric(List<WorkflowTask> tasks) {
+        // TODO this is just an example with one metric
+        String query = String.format("sum by (pod) (avg_over_time(container_cpu_usage_seconds_total[1h]))\n" + //
+                "", prometheusRange);
         String result = queryPrometheusBlocking(query);
         Map<String, Double> metric = parseMetric(result);
 

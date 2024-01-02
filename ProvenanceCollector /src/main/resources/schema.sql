@@ -1,3 +1,4 @@
+-- Creating workflows table
 CREATE TABLE IF NOT EXISTS workflows (
     workflow_id INT PRIMARY KEY,
     name VARCHAR(255),
@@ -9,6 +10,11 @@ CREATE TABLE IF NOT EXISTS workflows (
     updated_at TIMESTAMP
 );
 
+-- Inserting default values into workflows
+INSERT INTO workflows (workflow_id, name, tasks, start_time, end_time, status, created_at, updated_at) 
+VALUES (1, 'DefaultName', 'DefaultTasks', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'DefaultStatus', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Creating tasks table
 CREATE TABLE IF NOT EXISTS tasks (
     task_id INT,
     workflow_id INT,
@@ -20,10 +26,14 @@ CREATE TABLE IF NOT EXISTS tasks (
     node_assigned VARCHAR(255),
     termination_reason TEXT,
     created_at TIMESTAMP,
-    updated_at TIMESTAMP,
-    FOREIGN KEY (workflow_id) REFERENCES workflows(workflow_id)
+    updated_at TIMESTAMP
 );
 
+-- Inserting default values into tasks
+INSERT INTO tasks (task_id, workflow_id, pod_name, start_time, end_time, completed, completion_time, node_assigned, termination_reason, created_at, updated_at) 
+VALUES (1, 1, 'DefaultPod', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE, CURRENT_TIMESTAMP, 'DefaultNode', 'DefaultReason', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Creating resources table
 CREATE TABLE IF NOT EXISTS resources (
     resource_id SERIAL PRIMARY KEY,
     task_id INT,
@@ -39,3 +49,7 @@ CREATE TABLE IF NOT EXISTS resources (
     created_at TIMESTAMP,
     updated_at TIMESTAMP
 );
+
+-- Inserting default values into resources
+INSERT INTO resources (task_id, node_name, cpu_avg, cpu_min, cpu_max, mem_avg, mem_min, mem_max, mem_requested, cpu_requested, created_at, updated_at) 
+VALUES (1, 'DefaultNode', 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
