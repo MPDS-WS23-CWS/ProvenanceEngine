@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
+
 @SpringBootApplication
 public class ProvenanceCollectorApplication {
 
@@ -17,8 +19,10 @@ public class ProvenanceCollectorApplication {
 //        metricsClient.fetchInstantMetrics();
 //        metricsClient.fetchRangeMetrics();
 
-        System.out.println(metricsClient.fetchNewData());
-
+        List<WorkflowTask> newData= metricsClient.fetchNewData();
+        for(WorkflowTask t : newData) {
+            System.out.println(t);
+        }
     }
 
     @Bean
