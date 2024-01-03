@@ -1,13 +1,13 @@
 -- Creating workflows table
 CREATE TABLE IF NOT EXISTS workflows (
-    workflow_id INT PRIMARY KEY,
+    workflow_id SERIAL PRIMARY KEY,
     name VARCHAR(255),
     tasks TEXT,
     start_time TIMESTAMP,
     end_time TIMESTAMP,
     status VARCHAR(50),
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
+    db_created_at TIMESTAMP,
+    db_updated_at TIMESTAMP
 );
 
 -- Creating tasks table with foreign key to workflows
@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS tasks (
     completion_time TIMESTAMP,
     node_assigned VARCHAR(255),
     termination_reason TEXT,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP,
+    db_created_at TIMESTAMP,
+    db_updated_at TIMESTAMP,
     FOREIGN KEY (workflow_id) REFERENCES workflows(workflow_id)
 );
 
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS resources (
     mem_max DOUBLE PRECISION,
     mem_requested DOUBLE PRECISION,
     cpu_requested DOUBLE PRECISION,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP, -- Added a comma here
+    db_created_at TIMESTAMP,
+    db_updated_at TIMESTAMP, 
     FOREIGN KEY (task_id) REFERENCES tasks(task_id)
 );
