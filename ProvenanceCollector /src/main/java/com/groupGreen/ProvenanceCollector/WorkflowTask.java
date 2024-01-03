@@ -2,6 +2,7 @@ package com.groupGreen.ProvenanceCollector;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +21,7 @@ public class WorkflowTask {
 
     private long completionTime = -1;
 
-    private Map<String, Object> metrics = new HashMap<>();
+    private Map<String, Double> metrics = new HashMap<>();
 
     public WorkflowTask(String pod) {
         setPod(pod);
@@ -32,12 +33,11 @@ public class WorkflowTask {
     }
 
 //  Lets evaluate if the row format with is how we process the data
-//    public String getMetricsAsJson() {
-//        // TODO implement
-//        // return { "process": "RNASEQ", "cpu": 0.40, "mem": 0.10}
-//    }
+    public String getMetricsAsJson() {
+        return new JSONObject(metrics).toString();
+    }
 
-    public void putMetric(String metric, Object value) {
+    public void putMetric(String metric, Double value) {
         metrics.put(metric, value);
     }
 

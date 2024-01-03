@@ -10,7 +10,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.text.StringSubstitutor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,6 +22,9 @@ public class MetricsClient {
 
     @Value("${prometheus.server.url}")
     private String prometheusServerUrl;
+
+    @Autowired
+    private Metrics metrics;
 
 /*    
     @Value("${metrics.pod.profiles}")
@@ -50,7 +53,7 @@ public class MetricsClient {
     }
 
     private List<WorkflowTask> fetchNewlyCompletedTasks() {
-        String query = String.format("last_over_time(kube_pod_completion_time{pod=~'nf-.*'}[%s])", prometheusRange);
+        String query = replacePlaceholders("last_over_time(kube_pod_completion_time{pod=~'nf-.*'}[{RANGE}])");
         String result = queryPrometheusBlocking(query);
         Map<String, Long> completionTimes = parseTimes(result);
 
@@ -68,7 +71,7 @@ public class MetricsClient {
     }
 
     private void fetchStartTimes(List<WorkflowTask> tasks) {
-        String query = String.format("last_over_time(kube_pod_start_time{pod=~'nf-.*'}[%s])", prometheusRange);
+        String query = replacePlaceholders("last_over_time(kube_pod_start_time{pod=~'nf-.*'}[{RANGE}])");
         String result = queryPrometheusBlocking(query);
         Map<String, Long> startTimes = parseTimes(result);
 
@@ -76,7 +79,7 @@ public class MetricsClient {
     }
 
     private void fetchProcessNames(List<WorkflowTask> tasks) {
-        String query = String.format("last_over_time(kube_pod_labels{pod=~'nf-.*'}[%s])", prometheusRange);
+        String query = replacePlaceholders("last_over_time(kube_pod_labels{pod=~'nf-.*'}[{RANGE}])");
         String result = queryPrometheusBlocking(query);
         Map<String, String> processNames = parseProcessNames(result);
 
@@ -84,12 +87,12 @@ public class MetricsClient {
     }
 
     private void fetchMetric(List<WorkflowTask> tasks) {
-        // TODO this is just an example with one metric
-        String query = String.format("sum by(pod)(avg_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[%s]))", prometheusRange);
-        String result = queryPrometheusBlocking(query);
-        Map<String, Double> metric = parseMetric(result);
-
-        tasks.forEach(t -> t.putMetric(query, metric.get(t.getPod())));
+        Map <String, String> resourceMetrics = metrics.getResources();
+        for(Map.Entry<String, String> e : resourceMetrics.entrySet()) {
+            String result = queryPrometheusBlocking(replacePlaceholders(e.getValue()));
+            Map<String, Double> metric = parseMetric(result);
+            tasks.forEach(t -> t.putMetric(e.getKey(), metric.get(t.getPod())));
+        }
     }
 
     private String queryPrometheusBlocking(String query) {
@@ -150,6 +153,13 @@ public class MetricsClient {
             values.put(pod, completionTime);
         }
         return values;
+    }
+
+    private String replacePlaceholders(String template) {
+        Map<String, String> subsitutions = new HashMap<>();
+        subsitutions.put("RANGE", prometheusRange);
+        StringSubstitutor sub = new StringSubstitutor(subsitutions, "{", "}");
+        return sub.replace(template);
     }
 
 }
