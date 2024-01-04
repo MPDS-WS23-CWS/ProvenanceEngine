@@ -7,6 +7,16 @@ prometheus:
   server:
     url: http://localhost:9090/api/v1/query
 
+
+# postgREST
+pgrest:
+  server:
+    url: http://localhost:3000
+  endpoints:
+    workflows: "/workflows"
+    tasks: "/tasks"
+    resources: "/resources"
+
 # JDBC
 spring:
   sql:
@@ -22,9 +32,12 @@ spring:
 # Metrics
 metrics:
   resources:
-    max_cpu: "sum by(pod)(max_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[{RANGE}]))"
-    min_cpu: "sum by(pod)(min_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[{RANGE}]))"
-    avg_cpu: "sum by(pod)(avg_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[{RANGE}]))"
+    cpu_max: "sum by(pod)(max_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[{RANGE}]))"
+    cpu_min: "sum by(pod)(min_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[{RANGE}]))"
+    cpu_avg: "sum by(pod)(avg_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[{RANGE}]))"
+    mem_max: "sum by(pod)(max_over_time(container_memory_working_set_bytes{pod=~'nf-.*'}[{RANGE}]))"
+    mem_min: "sum by(pod)(min_over_time(container_memory_working_set_bytes{pod=~'nf-.*'}[{RANGE}]))"
+    mem_avg": "sum by(pod)(avg_over_time(container_memory_working_set_bytes{pod=~'nf-.*'}[{RANGE}]))"
 
 
 # Pod query profile:
