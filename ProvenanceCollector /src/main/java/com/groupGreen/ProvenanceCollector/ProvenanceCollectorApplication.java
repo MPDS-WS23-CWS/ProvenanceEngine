@@ -19,10 +19,7 @@ public class ProvenanceCollectorApplication {
 
     // public static void main(String[] args) {
     //     ConfigurableApplicationContext context = SpringApplication.run(ProvenanceCollectorApplication.class, args);
-    //     MetricsClient metricsClient = context.getBean(MetricsClient.class);
-
-//        metricsClient.fetchInstantMetrics();
-//        metricsClient.fetchRangeMetrics();
+    //     MetricsClient metricsClient = context.getBean(MetricsClient.class)
 
         // List<WorkflowTask> newData= metricsClient.fetchNewData();
         // for(WorkflowTask t : newData) {

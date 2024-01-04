@@ -1,11 +1,10 @@
 package com.groupGreen.ProvenanceCollector;
 
 public interface InsertData {
+    
+    void sendWorkflows(WorkflowTask task);
+    
+    void sendTasks(WorkflowTask task);
 
-    void postWorkflowData(WorkflowTask workflowTask);
-
-    void postTaskData(WorkflowTask workflowTask);
-
-    void postResourceMetrics(WorkflowTask workflowTask);
-
+    void sendResources(WorkflowTask task);
 }

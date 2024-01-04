@@ -26,13 +26,9 @@ public class MetricsClient {
     @Autowired
     private Metrics metrics;
 
-/*    
-    @Value("${metrics.pod.profiles}")
-    private String [] podQueries;
-/*
-    @Value("${metrics.node.profiles}")
-    private String [] rangeQueries;
-*/
+    @Autowired
+    private DataSender dataSender;
+
     private String prometheusRange = "200h";
 
     private List<String> returnedTasks = new ArrayList<>();
@@ -46,6 +42,13 @@ public class MetricsClient {
         fetchStartTimes(newlyCompletedTasks);
         fetchProcessNames(newlyCompletedTasks);
         fetchMetric(newlyCompletedTasks);
+
+        // send the data to pgrest
+        for (WorkflowTask task : newlyCompletedTasks) {
+            dataSender.sendWorkflows(task);
+            dataSender.sendTasks(task);
+            dataSender.sendResources(task);
+        }
 
         List<String> pods = newlyCompletedTasks.stream().map(WorkflowTask::getPod).toList();
         returnedTasks.addAll(pods);
@@ -156,9 +159,9 @@ public class MetricsClient {
     }
 
     private String replacePlaceholders(String template) {
-        Map<String, String> subsitutions = new HashMap<>();
-        subsitutions.put("RANGE", prometheusRange);
-        StringSubstitutor sub = new StringSubstitutor(subsitutions, "{", "}");
+        Map<String, String> substitutions = new HashMap<>();
+        substitutions.put("RANGE", prometheusRange);
+        StringSubstitutor sub = new StringSubstitutor(substitutions, "{", "}");
         return sub.replace(template);
     }
 
