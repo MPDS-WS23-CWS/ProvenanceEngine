@@ -25,12 +25,12 @@ port_forward "monitoring" "prometheus-server" 9090 9090
 sleep 3
 
 # PostgreSQL
-port_forward "database" "postgresdb" 5432 5432
+port_forward "db" "postgresdb" 5432 5432
 
 sleep 3
 
 # pgREST
-port_forward "database" "postgrest" 3000 3000
+port_forward "db" "postgrest" 3000 3000
 
 sleep 3
 
