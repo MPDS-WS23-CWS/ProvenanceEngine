@@ -1,6 +1,6 @@
 -- Creating workflows table
 CREATE TABLE IF NOT EXISTS workflows (
-    workflow_id SERIAL PRIMARY KEY, 
+    workflow_id VARCHAR(255) PRIMARY KEY,
     workflow_name VARCHAR(255), -- we use the process name for now
     start_time TIMESTAMP,
     end_time TIMESTAMP,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS workflows (
 CREATE TABLE IF NOT EXISTS tasks (
     task_id SERIAL PRIMARY KEY,
     task_name VARCHAR(255),
-    workflow_name VARCHAR(255),
+    workflow_id VARCHAR(255),
     start_time BIGINT,
     end_time BIGINT,
     completed BOOLEAN,

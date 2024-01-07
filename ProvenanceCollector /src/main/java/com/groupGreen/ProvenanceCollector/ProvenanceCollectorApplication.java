@@ -1,5 +1,7 @@
 package com.groupGreen.ProvenanceCollector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -27,6 +29,8 @@ public class ProvenanceCollectorApplication {
         // }
     // }
 
+    private static final Logger logger = LoggerFactory.getLogger(ProvenanceCollectorApplication.class);
+
     @Autowired
     private ConfigurableApplicationContext context;
 
@@ -34,13 +38,14 @@ public class ProvenanceCollectorApplication {
         SpringApplication.run(ProvenanceCollectorApplication.class, args);
     }
 
+    
     @Scheduled(fixedRate = 10000)
     public void fetchMetricsRegularly() {
         MetricsClient metricsClient = context.getBean(MetricsClient.class);
         List<WorkflowTask> newData = metricsClient.fetchNewData();
-        for (WorkflowTask task : newData) {
-            System.out.println(task);
-        }
+//        for (WorkflowTask task : newData) {
+//            System.out.println(task);
+//        }
     }
 
     @Bean
@@ -55,5 +60,6 @@ public class ProvenanceCollectorApplication {
                 .exchangeStrategies(strategies)
                 .build();
     }
+
 }
 

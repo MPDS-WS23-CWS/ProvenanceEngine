@@ -2,7 +2,7 @@ package com.groupGreen.ProvenanceCollector;
 
 public interface InsertData {
     
-    void sendWorkflows(WorkflowTask task);
+    void sendWorkflows(Workflow worfklow);
     
     void sendTasks(WorkflowTask task);
 

@@ -37,12 +37,12 @@ public class DataSender implements InsertData {
 
 
     @Override
-    public void sendWorkflows(WorkflowTask task) {
+    public void sendWorkflows(Workflow workflow) {
         JSONObject workflowData = new JSONObject();
 
-        workflowData.put("workflow_name", task.getProcessName());
+        workflowData.put("workflow_id", workflow.getWorkflowID());
     
-        logger.info("Sending workflow data:{}", workflowData);
+        logger.info("Sending workflow data: {}", workflowData);
 
         webClient.post()
             .uri(serverUrl + workflowsEndpoint)
@@ -50,7 +50,7 @@ public class DataSender implements InsertData {
             .bodyValue(workflowData.toString())
             .retrieve()
             .bodyToMono(String.class)
-            .doOnSuccess(response -> logger.info("Sent task: {}", workflowData))
+//            .doOnSuccess(response -> logger.info("Sent workflow: {}", workflowData))
             .doOnError(error -> {
                 if (error instanceof WebClientResponseException) {
                     WebClientResponseException ex = (WebClientResponseException) error;
@@ -69,11 +69,11 @@ public class DataSender implements InsertData {
         JSONObject taskData = new JSONObject();
 
         taskData.put("task_name", task.getPod());
-        taskData.put("workflow_name", task.getProcessName());
+        taskData.put("workflow_id", task.getWorkflowID());
         taskData.put("start_time", task.getStartTime());
         taskData.put("end_time", task.getCompletionTime());
 
-        logger.info("Sending task data:{}", taskData);
+        logger.info("Sending task data: {}", taskData);
 
         webClient.post()
             .uri(serverUrl + tasksEndpoint)
@@ -81,7 +81,7 @@ public class DataSender implements InsertData {
             .bodyValue(taskData.toString())
             .retrieve()
             .bodyToMono(String.class)
-            .doOnSuccess(response -> logger.info("Sent task: {}", taskData))
+//            .doOnSuccess(response -> logger.info("Sent task: {}", taskData))
             .doOnError(error -> {
                 if (error instanceof WebClientResponseException) {
                     WebClientResponseException ex = (WebClientResponseException) error;
@@ -110,7 +110,7 @@ public class DataSender implements InsertData {
         metricsData.put("mem_min", metrics.get("mem_min"));
         metricsData.put("mem_max", metrics.get("mem_max"));
         
-        logger.info("Sending Retrics data:{}", metricsData);
+        logger.info("Sending metrics data: {}", metricsData);
 
         webClient.post()
             .uri(serverUrl + resourcesEndpoint)
@@ -118,7 +118,7 @@ public class DataSender implements InsertData {
             .bodyValue(metricsData.toString())
             .retrieve()
             .bodyToMono(String.class)
-            .doOnSuccess(response -> logger.info("Sent metrics: {}", metricsData))
+//            .doOnSuccess(response -> logger.info("Sent metrics: {}", metricsData))
             .doOnError(error -> {
                 if (error instanceof WebClientResponseException) {
                     WebClientResponseException ex = (WebClientResponseException) error;

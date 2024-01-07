@@ -15,6 +15,8 @@ public class WorkflowTask {
 
     private String pod;
 
+    private String workflowID;
+
     private String processName;
 
     private long startTime = -1;
