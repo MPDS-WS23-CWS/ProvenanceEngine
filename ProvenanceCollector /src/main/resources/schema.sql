@@ -39,6 +39,8 @@ CREATE TABLE IF NOT EXISTS resources (
     mem_overcommit DOUBLE PRECISION,
     cpu_idle DOUBLE PRECISION,
     mem_idle DOUBLE PRECISION,
+    fs_reads_total DOUBLE PRECISION,
+    fs_writes_total DOUBLE PRECISION,
     -- maybe add node information in here 
     db_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     --FOREIGN KEY (task_name) REFERENCES tasks(task_name)

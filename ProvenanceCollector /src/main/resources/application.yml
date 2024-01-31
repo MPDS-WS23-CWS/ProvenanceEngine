@@ -38,6 +38,8 @@ metrics:
     mem_max: "sum by(pod)(max_over_time(container_memory_working_set_bytes{pod=~'nf-.*'}[{RANGE}]))"
     mem_min: "sum by(pod)(min_over_time(container_memory_working_set_bytes{pod=~'nf-.*'}[{RANGE}]))"
     mem_avg": "sum by(pod)(avg_over_time(container_memory_working_set_bytes{pod=~'nf-.*'}[{RANGE}]))"
+    fs_reads_total: "max_over_time(container_fs_reads_bytes_total{pod=~'nf-.*'}[{RANGE}])"
+    fs_writes_total: "max_over_time(container_fs_writes_bytes_total{pod=~'nf-.*'}[{RANGE}])"
 
 
 # Pod query profile:

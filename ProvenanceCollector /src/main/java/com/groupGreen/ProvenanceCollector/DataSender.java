@@ -109,6 +109,8 @@ public class DataSender implements InsertData {
         metricsData.put("mem_avg", metrics.get("mem_avg"));
         metricsData.put("mem_min", metrics.get("mem_min"));
         metricsData.put("mem_max", metrics.get("mem_max"));
+        metricsData.put("fs_reads_total", metrics.get("fs_reads_total"));
+        metricsData.put("fs_writes_total", metrics.get("fs_writes_total"));
         
         logger.info("Sending metrics data: {}", metricsData);
 
