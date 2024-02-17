@@ -13,11 +13,13 @@ public class WorkflowTask {
 
     // TODO: add fields like workflowID, nodeAssigned, terminationReason and whatever is needed as metadata
 
-    private String pod;
+    private String pod; // in db: pod_id
 
     private String workflowID;
 
     private String processName;
+
+    private String nodeName;
 
     private long startTime = -1;
 

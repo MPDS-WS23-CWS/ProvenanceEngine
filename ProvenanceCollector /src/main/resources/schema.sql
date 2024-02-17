@@ -10,23 +10,23 @@ CREATE TABLE IF NOT EXISTS workflows (
 
 -- Creating tasks table 
 CREATE TABLE IF NOT EXISTS tasks (
-    task_id SERIAL PRIMARY KEY,
-    task_name VARCHAR(255),
+    task_key SERIAL PRIMARY KEY,
+    pod_id VARCHAR(255),
     workflow_id VARCHAR(255),
+    process_name VARCHAR(255),
+    node_name VARCHAR(255),
     start_time BIGINT,
     end_time BIGINT,
     completed BOOLEAN,
     completion_time BIGINT,
-    node_assigned VARCHAR(255),
     termination_reason TEXT,
     db_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Creating resources table with foreign key to tasks
 CREATE TABLE IF NOT EXISTS resources (
-    resource_id SERIAL PRIMARY KEY,
-    task_name VARCHAR(255),
-    node_name VARCHAR(255),
+    resource_key SERIAL PRIMARY KEY,
+    pod_id VARCHAR(255),
     cpu_avg DOUBLE PRECISION,
     cpu_min DOUBLE PRECISION,
     cpu_max DOUBLE PRECISION,

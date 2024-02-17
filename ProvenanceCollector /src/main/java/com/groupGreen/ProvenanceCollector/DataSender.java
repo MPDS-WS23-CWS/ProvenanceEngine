@@ -60,7 +60,6 @@ public class DataSender implements InsertData {
                 }
             })
             .subscribe();
-
     } 
 
 
@@ -68,8 +67,10 @@ public class DataSender implements InsertData {
     public void sendTasks(WorkflowTask task) {
         JSONObject taskData = new JSONObject();
 
-        taskData.put("task_name", task.getPod());
+        taskData.put("pod_id", task.getPod());
         taskData.put("workflow_id", task.getWorkflowID());
+        taskData.put("process_name", task.getProcessName());
+        taskData.put("node_name", task.getNodeName());
         taskData.put("start_time", task.getStartTime());
         taskData.put("end_time", task.getCompletionTime());
 
@@ -102,7 +103,7 @@ public class DataSender implements InsertData {
 
         Map<String, Double> metrics = task.getMetrics();
 
-        metricsData.put("task_name", task.getPod());
+        metricsData.put("pod_id", task.getPod());
         metricsData.put("cpu_avg", metrics.get("cpu_avg"));
         metricsData.put("cpu_min", metrics.get("cpu_min"));
         metricsData.put("cpu_max", metrics.get("cpu_max"));

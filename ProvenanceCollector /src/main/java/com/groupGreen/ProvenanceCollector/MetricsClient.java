@@ -58,6 +58,7 @@ public class MetricsClient {
         fetchWorkflowIDs(newlyCompletedTasks);
         fetchStartTimes(newlyCompletedTasks);
         fetchProcessNames(newlyCompletedTasks);
+        fetchNodeNames(newlyCompletedTasks);
         fetchMetrics(newlyCompletedTasks);
 
         // send the data to pgrest
@@ -113,6 +114,14 @@ public class MetricsClient {
         tasks.forEach(t -> t.setProcessName(processNames.get(t.getPod())));
     }
 
+    private void fetchNodeNames(List<WorkflowTask> tasks) {
+        String query = replacePlaceholders("last_over_time(kube_pod_info{pod=~'nf-.*'}[{RANGE}])");
+        String result = queryPrometheusBlocking(query);
+        Map<String, String> nodeNames = parseNodeNames(result);
+
+        tasks.forEach(t -> t.setNodeName(nodeNames.get(t.getPod())));
+    }
+
     private void fetchMetrics(List<WorkflowTask> tasks) {
         Map <String, String> resourceMetrics = metrics.getResources();
         for(Map.Entry<String, String> e : resourceMetrics.entrySet()) {
@@ -157,6 +166,23 @@ public class MetricsClient {
             processNames.put(pod, processName);
         }
         return processNames;
+    }
+
+    private Map<String, String> parseNodeNames(String jsonString) {
+        Map<String, String> nodeNames = new HashMap<>();
+
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray result = jsonObject.getJSONObject("data").getJSONArray("result");
+
+        for (int i = 0; i < result.length(); i++) {
+            JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
+            String pod = metric.getString("pod");
+            if (metric.has("node")) {
+                String nodeName = metric.getString("node");
+                nodeNames.put(pod, nodeName);
+            }
+        }
+        return nodeNames;
     }
 
     private Map<String, String> parseWorkflowIDs(String jsonString) {

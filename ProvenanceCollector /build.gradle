@@ -25,15 +25,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jersey'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'io.kubernetes:client-java:18.0.0'
-    runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.springframework.restdocs:spring-restdocs-webtestclient'
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.apache.commons:commons-text:1.11.0'
-
     implementation 'org.json:json:20231013'
     implementation 'com.google.guava:guava:32.0.0-android'
+    implementation 'org.postgresql:postgresql:42.6.0'
 }
 
 tasks.named('test') {

@@ -38,7 +38,6 @@ public class ProvenanceCollectorApplication {
         SpringApplication.run(ProvenanceCollectorApplication.class, args);
     }
 
-    
     @Scheduled(fixedRate = 10000)
     public void fetchMetricsRegularly() {
         MetricsClient metricsClient = context.getBean(MetricsClient.class);
