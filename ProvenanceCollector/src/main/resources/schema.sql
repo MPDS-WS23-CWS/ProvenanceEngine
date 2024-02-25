@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     node_name VARCHAR(255),
     start_time BIGINT,
     end_time BIGINT,
+    input_size BIGINT,
     completed BOOLEAN,
     completion_time BIGINT,
     termination_reason TEXT,

@@ -73,6 +73,7 @@ public class DataSender implements InsertData {
         taskData.put("node_name", task.getNodeName());
         taskData.put("start_time", task.getStartTime());
         taskData.put("end_time", task.getCompletionTime());
+        taskData.put("input_size", task.getInputSize());
 
         logger.info("Sending task data: {}", taskData);
 

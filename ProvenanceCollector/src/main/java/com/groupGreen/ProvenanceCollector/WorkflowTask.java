@@ -25,6 +25,8 @@ public class WorkflowTask {
 
     private long completionTime = -1;
 
+    private long inputSize = -1;
+
     private Map<String, Double> metrics = new HashMap<>();
 
     public WorkflowTask(String pod) {

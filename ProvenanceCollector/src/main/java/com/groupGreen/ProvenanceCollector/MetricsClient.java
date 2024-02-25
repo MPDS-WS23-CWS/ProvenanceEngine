@@ -55,9 +55,9 @@ public class MetricsClient {
         logger.info("Identified newly completed tasks: {}", newlyCompletedTasks.stream().map(WorkflowTask::getPod).toList());
         logger.info("Fetching metrics");
 
-        fetchWorkflowIDs(newlyCompletedTasks);
+
         fetchStartTimes(newlyCompletedTasks);
-        fetchProcessNames(newlyCompletedTasks);
+        fetchLabels(newlyCompletedTasks);
         fetchNodeNames(newlyCompletedTasks);
         fetchMetrics(newlyCompletedTasks);
 
@@ -98,20 +98,19 @@ public class MetricsClient {
         tasks.forEach(t -> t.setStartTime(startTimes.get(t.getPod())));
     }
 
-    private void fetchWorkflowIDs(List<WorkflowTask> tasks) {
+
+    private void fetchLabels(List<WorkflowTask> tasks) {
         String query = replacePlaceholders("last_over_time(kube_pod_labels{pod=~'nf-.*'}[{RANGE}])");
         String result = queryPrometheusBlocking(query);
+
         Map<String, String> workflowIDs = parseWorkflowIDs(result);
-
         tasks.forEach(t -> t.setWorkflowID(workflowIDs.get(t.getPod())));
-    }
 
-    private void fetchProcessNames(List<WorkflowTask> tasks) {
-        String query = replacePlaceholders("last_over_time(kube_pod_labels{pod=~'nf-.*'}[{RANGE}])");
-        String result = queryPrometheusBlocking(query);
         Map<String, String> processNames = parseProcessNames(result);
-
         tasks.forEach(t -> t.setProcessName(processNames.get(t.getPod())));
+
+        Map<String, Long> inputSizes = parseInputSizes(result);
+        tasks.forEach(t -> t.setInputSize(inputSizes.get(t.getPod())));
     }
 
     private void fetchNodeNames(List<WorkflowTask> tasks) {
@@ -200,6 +199,25 @@ public class MetricsClient {
             checkIfNewWorkflow(workflowID);
         }
         return workflowIDs;
+    }
+
+    private Map<String, Long> parseInputSizes(String jsonString) {
+        Map<String, Long> inputSizes = new HashMap<>();
+
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray result = jsonObject.getJSONObject("data").getJSONArray("result");
+
+        for (int i = 0; i < result.length(); i++) {
+            JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
+            String pod = metric.getString("pod");
+            if(metric.has("label_input_size")) {
+                long inputSize = metric.getLong("label_input_size");
+                inputSizes.put(pod, inputSize);
+            } else {
+                inputSizes.put(pod, -1L);
+            }
+        }
+        return inputSizes;
     }
 
     private Map<String, Long> parseTimes(String jsonString) {
