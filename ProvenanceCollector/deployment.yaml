@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: provenance-collector
+  name: provenance-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: provenance-collector
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: provenance-collector
+    spec:
+      containers:
+      - image: leshl/provenance-collector
+        name: provenance-collector
+        resources: {}
+    # nodeSelector: 
+    #   cwsscheduler: 'true'
+status: {}
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   creationTimestamp: null
+#   labels:
+#     app: provenance-collector
+#   name: provenance-collector
+# spec:
+#   ports:
+#   - name: 8080-8080
+#     port: 8080
+#     protocol: TCP
+#     targetPort: 8080
+#   selector:
+#     app: provenance-collector
+#   type: ClusterIP
+# status:
+#   loadBalancer: {}

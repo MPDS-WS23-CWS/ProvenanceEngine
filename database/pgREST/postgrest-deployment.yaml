@@ -15,6 +15,10 @@ spec:
       containers:
       - name: postgrest
         image: postgrest/postgrest
+        # lifecycle:
+        #   postStart:
+        #     exec:
+        #       command: ["/bin/bash","-c","sleep 20 && PGPASSWORD=$POSTGRES_PASSWORD psql $POSTGRES_DB -U $POSTGRES_USER -c \'CREATE SCHEMA IF NOT EXISTS key;\'"]
         env:
         - name: PGRST_DB_URI
           value: "postgres://testUser:testPassword@postgresdb.db.svc.cluster.local:5432/testDB"
