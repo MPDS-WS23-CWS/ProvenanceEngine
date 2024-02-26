@@ -16,28 +16,14 @@ spec:
         app: provenance-collector
     spec:
       containers:
-      - image: leshl/provenance-collector
+      - env:
+        - name: LOCAL_DEPLOY
+          value: "true"
+        image: leshl/provenance-collector
+        imagePullPolicy: Always
         name: provenance-collector
         resources: {}
+
     # nodeSelector: 
     #   cwsscheduler: 'true'
 status: {}
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   creationTimestamp: null
-#   labels:
-#     app: provenance-collector
-#   name: provenance-collector
-# spec:
-#   ports:
-#   - name: 8080-8080
-#     port: 8080
-#     protocol: TCP
-#     targetPort: 8080
-#   selector:
-#     app: provenance-collector
-#   type: ClusterIP
-# status:
-#   loadBalancer: {}

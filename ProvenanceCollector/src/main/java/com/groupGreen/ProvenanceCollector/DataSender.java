@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
 import java.util.Map;
 
 @Component
@@ -18,16 +20,19 @@ public class DataSender implements InsertData {
     private static final Logger logger = LoggerFactory.getLogger(DataSender.class);
 
     @Value("${pgrest.server.url}")
-    private String serverUrl;
+    private String postgrestServerUrl;
+
+    @Value("${pgrest.server.port}")
+    private String postgrestServerPort;
 
     @Value("${pgrest.endpoints.workflows}")
-    private String workflowsEndpoint;
+    private String postgrestWorkflowsEndpoint;
 
     @Value("${pgrest.endpoints.tasks}")
-    private String tasksEndpoint;
+    private String postgrestTasksEndpoint;
 
     @Value("${pgrest.endpoints.resources}")
-    private String resourcesEndpoint;
+    private String postgrestResourcesEndpoint;
 
     private final WebClient webClient;
 
@@ -35,6 +40,12 @@ public class DataSender implements InsertData {
         this.webClient = webClientBuilder.build();
     }
 
+    @PostConstruct
+    private void postConstruct() {
+        if (Boolean.parseBoolean(System.getenv("LOCAL_DEPLOY"))) {
+            this.postgrestServerUrl = "localhost";
+        }
+    }
 
     @Override
     public void sendWorkflows(Workflow workflow) {
@@ -45,7 +56,7 @@ public class DataSender implements InsertData {
         logger.info("Sending workflow data: {}", workflowData);
 
         webClient.post()
-            .uri(serverUrl + workflowsEndpoint)
+            .uri(uriBuilder -> uriBuilder.scheme("http").host(postgrestServerUrl).port(postgrestServerPort).path(postgrestWorkflowsEndpoint).build())
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .bodyValue(workflowData.toString())
             .retrieve()
@@ -60,7 +71,7 @@ public class DataSender implements InsertData {
                 }
             })
             .subscribe();
-    } 
+    }
 
 
     @Override
@@ -78,7 +89,7 @@ public class DataSender implements InsertData {
         logger.info("Sending task data: {}", taskData);
 
         webClient.post()
-            .uri(serverUrl + tasksEndpoint)
+            .uri(uriBuilder -> uriBuilder.scheme("http").host(postgrestServerUrl).port(postgrestServerPort).path(postgrestTasksEndpoint).build())
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .bodyValue(taskData.toString())
             .retrieve()
@@ -117,7 +128,7 @@ public class DataSender implements InsertData {
         logger.info("Sending metrics data: {}", metricsData);
 
         webClient.post()
-            .uri(serverUrl + resourcesEndpoint)
+            .uri(uriBuilder -> uriBuilder.scheme("http").host(postgrestServerUrl).port(postgrestServerPort).path(postgrestResourcesEndpoint).build())
             .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .bodyValue(metricsData.toString())
             .retrieve()

@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.apache.commons.text.StringSubstitutor;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,12 @@ public class MetricsClient {
 
     @Value("${prometheus.server.url}")
     private String prometheusServerUrl;
+
+    @Value("${prometheus.server.port}")
+    private String prometheusServerPort;
+
+    @Value("${prometheus.server.endpoint}")
+    private String prometheusServerEndpoint;
 
     @Autowired
     private Metrics metrics;
@@ -44,6 +51,13 @@ public class MetricsClient {
         this.webClient = webClientBuilder.build();
     }
 
+    @PostConstruct
+    private void postConstruct() {
+        if (Boolean.parseBoolean(System.getenv("LOCAL_DEPLOY"))) {
+            this.prometheusServerUrl = "localhost";
+        }
+    }
+
     public List<WorkflowTask> fetchNewData() {
         logger.info("Fetching newly completed tasks");
         List<WorkflowTask> newlyCompletedTasks = fetchNewlyCompletedTasks();
@@ -54,7 +68,6 @@ public class MetricsClient {
 
         logger.info("Identified newly completed tasks: {}", newlyCompletedTasks.stream().map(WorkflowTask::getPod).toList());
         logger.info("Fetching metrics");
-
 
         fetchStartTimes(newlyCompletedTasks);
         fetchLabels(newlyCompletedTasks);
@@ -143,7 +156,7 @@ public class MetricsClient {
         bodyValues.add("query", query);
 
         return webClient.post()
-                .uri(prometheusServerUrl)
+                .uri(uriBuilder -> uriBuilder.scheme("http").host(prometheusServerUrl).port(prometheusServerPort).path(prometheusServerEndpoint).build())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromFormData(bodyValues))
