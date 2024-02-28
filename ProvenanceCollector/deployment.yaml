@@ -16,12 +16,12 @@ spec:
         app: provenance-collector
     spec:
       containers:
-      - env:
-        - name: LOCAL_DEPLOY
-          value: "true"
+      - name: provenance-collector
+        # env:
+        # - name: LOCAL_DEPLOY
+        #   value: "false"
         image: leshl/provenance-collector
         imagePullPolicy: Always
-        name: provenance-collector
         resources: {}
 
     # nodeSelector: 
