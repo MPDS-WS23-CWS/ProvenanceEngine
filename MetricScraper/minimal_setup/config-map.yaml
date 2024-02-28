@@ -91,6 +91,7 @@ data:
       - job_name: 'kube-state-metrics'
         static_configs:
           - targets: ['kube-state-metrics.kube-system.svc.cluster.local:8080']
+        scrape_interval: 500ms  
       - job_name: 'kubernetes-cadvisor'
         scheme: https
         tls_config:
