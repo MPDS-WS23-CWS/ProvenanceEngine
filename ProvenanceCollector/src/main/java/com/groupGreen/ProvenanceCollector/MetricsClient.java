@@ -206,10 +206,13 @@ public class MetricsClient {
         for (int i = 0; i < result.length(); i++) {
             JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
             String pod = metric.getString("pod");
-            String workflowID = metric.getString("label_session_id");
-            workflowIDs.put(pod, workflowID);
-
-            checkIfNewWorkflow(workflowID);
+            if(metric.has("label_session_id")) {
+                String workflowID = metric.getString("label_session_id");
+                workflowIDs.put(pod, workflowID);
+                checkIfNewWorkflow(workflowID);
+            } else {
+                workflowIDs.put(pod, "None");
+            }
         }
         return workflowIDs;
     }
