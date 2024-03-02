@@ -5,16 +5,16 @@ server:
 # Prometheus
 prometheus:
   server:
-    url: localhost
-#    url: prometheus-service.monitoring.svc.cluster.local
-    port: 9090
+#    url: localhost
+    url: prometheus-service.monitoring.svc.cluster.local
+    port: 9099
     endpoint: "/api/v1/query"
 
 # postgREST
 pgrest:
   server:
-    url: localhost
-#    url: postgrest-service.db.svc.cluster.local
+#    url: localhost
+    url: postgrest-service.db.svc.cluster.local
     port: 3000
   endpoints:
     workflows: "/workflows"
@@ -28,8 +28,8 @@ spring:
       mode: always
       schema-locations: classpath:schema.sql
   datasource:
-    url: jdbc:postgresql://localhost:5432/testDB
-#    url: jdbc:postgresql://postgresdb.db.svc.cluster.local:5432/testDB
+#    url: jdbc:postgresql://localhost:5432/testDB
+    url: jdbc:postgresql://postgresdb.db.svc.cluster.local:5432/testDB
     username: testUser
     password: testPassword
     driver-class-name: org.postgresql.Driver
