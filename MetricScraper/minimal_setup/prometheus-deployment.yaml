@@ -22,8 +22,10 @@ spec:
             - "--storage.tsdb.retention.time=12h"
             - "--config.file=/etc/prometheus/prometheus.yml"
             - "--storage.tsdb.path=/prometheus/"
+            - "--web.enable-admin-api"
+            - "--web.listen-address=:9099"
           ports:
-            - containerPort: 9090
+            - containerPort: 9099
           resources:
             requests:
               cpu: 500m

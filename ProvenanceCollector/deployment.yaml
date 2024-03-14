@@ -20,7 +20,7 @@ spec:
         # env:
         # - name: LOCAL_DEPLOY
         #   value: "false"
-        image: leshl/provenance-collector
+        image: juscou/provenance-collector
         imagePullPolicy: Always
         resources: {}
 
