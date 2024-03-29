@@ -13,4 +13,5 @@ import java.util.Map;
 @Getter
 public class Metrics {
     private Map<String, String> resources;
+    private Map<String, String> resourcesTimeSeries;
 }

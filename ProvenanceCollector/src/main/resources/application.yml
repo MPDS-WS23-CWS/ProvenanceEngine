@@ -5,21 +5,22 @@ server:
 # Prometheus
 prometheus:
   server:
-#    url: localhost
-    url: prometheus-service.monitoring.svc.cluster.local
-    port: 9099
+    url: localhost
+#    url: prometheus-service.monitoring.svc.cluster.local
+    port: 9090
     endpoint: "/api/v1/query"
 
 # postgREST
 pgrest:
   server:
-#    url: localhost
-    url: postgrest-service.db.svc.cluster.local
+    url: localhost
+#    url: postgrest-service.db.svc.cluster.local
     port: 3000
   endpoints:
     workflows: "/workflows"
     tasks: "/tasks"
     resources: "/resources"
+    resources_time_series: "/resources_time_series"
 
 # JDBC
 spring:
@@ -28,8 +29,8 @@ spring:
       mode: always
       schema-locations: classpath:schema.sql
   datasource:
-#    url: jdbc:postgresql://localhost:5432/testDB
-    url: jdbc:postgresql://postgresdb.db.svc.cluster.local:5432/testDB
+    url: jdbc:postgresql://localhost:5432/testDB
+#    url: jdbc:postgresql://postgresdb.db.svc.cluster.local:5432/testDB
     username: testUser
     password: testPassword
     driver-class-name: org.postgresql.Driver
@@ -37,16 +38,17 @@ spring:
 # Metrics
 metrics:
   resources:
-    cpu_max: "sum by(pod)(max_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[{RANGE}]))"
-    cpu_min: "sum by(pod)(min_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[{RANGE}]))"
-    cpu_avg: "sum by(pod)(avg_over_time(container_cpu_usage_seconds_total{pod=~'nf-.*'}[{RANGE}]))"
-    mem_max: "sum by(pod)(max_over_time(container_memory_working_set_bytes{pod=~'nf-.*'}[{RANGE}]))"
-    mem_min: "sum by(pod)(min_over_time(container_memory_working_set_bytes{pod=~'nf-.*'}[{RANGE}]))"
-    mem_avg": "sum by(pod)(avg_over_time(container_memory_working_set_bytes{pod=~'nf-.*'}[{RANGE}]))"
-    fs_reads_total: "max_over_time(container_fs_reads_bytes_total{pod=~'nf-.*'}[{RANGE}])"
-    fs_writes_total: "max_over_time(container_fs_writes_bytes_total{pod=~'nf-.*'}[{RANGE}])"
-
-
+#    rate(max_over_time(container_cpu_user_seconds_total{pod=~"nf-.*"}[50m])[1m:]) *100
+    cpu_max: "sum by(pod)(max_over_time(container_cpu_usage_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    cpu_min: "sum by(pod)(min_over_time(container_cpu_usage_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    cpu_avg: "sum by(pod)(avg_over_time(container_cpu_usage_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    mem_max: "sum by(pod)(max_over_time(container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    mem_min: "sum by(pod)(min_over_time(container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    mem_avg": "sum by(pod)(avg_over_time(container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    fs_reads_total: "max_over_time(container_fs_reads_bytes_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])"
+    fs_writes_total: "max_over_time(container_fs_writes_bytes_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])"
+  resources_time_series:
+    cpu: "container_cpu_usage_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]"
 # Pod query profile:
 
 # We don't need POD INFO Stuff as this can be hardcoded in the metrics-client just as it is

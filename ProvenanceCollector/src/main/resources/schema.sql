@@ -47,6 +47,15 @@ CREATE TABLE IF NOT EXISTS resources (
     --FOREIGN KEY (task_name) REFERENCES tasks(task_name)
 );
 
+CREATE TABLE IF NOT EXISTS resources_time_series (
+    resource_key SERIAL PRIMARY KEY,
+    metric_name VARCHAR(255),
+    pod_id VARCHAR(255),
+    unix_time DOUBLE PRECISION,
+    metric_value DOUBLE PRECISION,
+    db_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- -- -- Creating nodes table 
 -- CREATE TABLE IF NOT EXISTS node_metrics (
 --     node_id SERIAL PRIMARY KEY,

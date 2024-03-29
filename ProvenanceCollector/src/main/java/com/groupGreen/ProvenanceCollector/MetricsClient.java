@@ -73,11 +73,13 @@ public class MetricsClient {
         fetchLabels(newlyCompletedTasks);
         fetchNodeNames(newlyCompletedTasks);
         fetchMetrics(newlyCompletedTasks);
+        fetchTimeSeriesMetrics(newlyCompletedTasks);
 
         // send the data to pgrest
         for (WorkflowTask task : newlyCompletedTasks) {
             dataSender.sendTasks(task);
             dataSender.sendResources(task);
+//            dataSender.sendResourcesTimeSeries(task);
         }
 
         List<String> pods = newlyCompletedTasks.stream().map(WorkflowTask::getPod).toList();
@@ -86,7 +88,7 @@ public class MetricsClient {
     }
 
     private List<WorkflowTask> fetchNewlyCompletedTasks() {
-        String query = replacePlaceholders("last_over_time(kube_pod_completion_time{pod=~'nf-.*'}[{RANGE}])");
+        String query = replacePlaceholders("last_over_time(kube_pod_completion_time{pod=~'nf-.*',namespace='cws'}[{RANGE}])");
         String result = queryPrometheusBlocking(query);
         Map<String, Long> completionTimes = parseTimes(result);
 
@@ -104,7 +106,7 @@ public class MetricsClient {
     }
 
     private void fetchStartTimes(List<WorkflowTask> tasks) {
-        String query = replacePlaceholders("last_over_time(kube_pod_start_time{pod=~'nf-.*'}[{RANGE}])");
+        String query = replacePlaceholders("last_over_time(kube_pod_start_time{pod=~'nf-.*',namespace='cws'}[{RANGE}])");
         String result = queryPrometheusBlocking(query);
         Map<String, Long> startTimes = parseTimes(result);
 
@@ -113,7 +115,7 @@ public class MetricsClient {
 
 
     private void fetchLabels(List<WorkflowTask> tasks) {
-        String query = replacePlaceholders("last_over_time(kube_pod_labels{pod=~'nf-.*'}[{RANGE}])");
+        String query = replacePlaceholders("last_over_time(kube_pod_labels{pod=~'nf-.*',namespace='cws'}[{RANGE}])");
         String result = queryPrometheusBlocking(query);
 
         Map<String, String> workflowIDs = parseWorkflowIDs(result);
@@ -127,7 +129,7 @@ public class MetricsClient {
     }
 
     private void fetchNodeNames(List<WorkflowTask> tasks) {
-        String query = replacePlaceholders("last_over_time(kube_pod_info{pod=~'nf-.*'}[{RANGE}])");
+        String query = replacePlaceholders("last_over_time(kube_pod_info{pod=~'nf-.*',namespace='cws'}[{RANGE}])");
         String result = queryPrometheusBlocking(query);
         Map<String, String> nodeNames = parseNodeNames(result);
 
@@ -140,6 +142,19 @@ public class MetricsClient {
             String result = queryPrometheusBlocking(replacePlaceholders(e.getValue()));
             Map<String, Double> metric = parseMetric(result);
             tasks.forEach(t -> t.putMetric(e.getKey(), metric.get(t.getPod())));
+        }
+    }
+
+    private void fetchTimeSeriesMetrics(List<WorkflowTask> tasks) {
+        Map <String, String> resourceTimeSeriesMetrics = metrics.getResourcesTimeSeries();
+        for(Map.Entry<String, String> e : resourceTimeSeriesMetrics.entrySet()) {
+            String result = queryPrometheusBlocking(replacePlaceholders(e.getValue()));
+            Map<String, List<TimeSeriesDataPoint>> timeSeriesMetric = parseTimeSeriesMetric(result);
+            for(WorkflowTask task : tasks) {
+                if(timeSeriesMetric.containsKey(task.getPod())) {
+                    task.putTimeSeriesMetric(e.getKey(), timeSeriesMetric.get(task.getPod()));
+                }
+            }
         }
     }
 
@@ -156,7 +171,11 @@ public class MetricsClient {
         bodyValues.add("query", query);
 
         return webClient.post()
-                .uri(uriBuilder -> uriBuilder.scheme("http").host(prometheusServerUrl).port(prometheusServerPort).path(prometheusServerEndpoint).build())
+                .uri(uriBuilder -> uriBuilder.scheme("http")
+                        .host(prometheusServerUrl)
+                        .port(prometheusServerPort)
+                        .path(prometheusServerEndpoint)
+                        .build())
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromFormData(bodyValues))
@@ -265,6 +284,30 @@ public class MetricsClient {
             values.put(pod, completionTime);
         }
         return values;
+    }
+
+    private Map<String, List<TimeSeriesDataPoint>> parseTimeSeriesMetric(String jsonString) {
+        Map<String, List<TimeSeriesDataPoint>> timeSeriesValues = new HashMap<>();
+
+        JSONObject jsonObject = new JSONObject(jsonString);
+        JSONArray result = jsonObject.getJSONObject("data").getJSONArray("result");
+
+        for (int i = 0; i < result.length(); i++) {
+            JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
+            String pod = metric.getString("pod");
+            JSONArray valuesArray = result.getJSONObject(i).getJSONArray("values");
+            logger.info(valuesArray.toString());
+
+            List<TimeSeriesDataPoint> dataPoints = new ArrayList<>();
+            for (int j = 0; j < valuesArray.length(); j++) {
+                JSONArray dataPointArray = valuesArray.getJSONArray(j);
+                double timestamp = dataPointArray.getDouble(0);
+                double value = Double.parseDouble(dataPointArray.getString(1));
+                dataPoints.add(new TimeSeriesDataPoint(timestamp, value));
+            }
+            timeSeriesValues.put(pod, dataPoints);
+        }
+        return timeSeriesValues;
     }
 
     private String replacePlaceholders(String template) {

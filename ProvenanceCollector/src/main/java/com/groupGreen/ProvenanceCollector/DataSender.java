@@ -1,5 +1,6 @@
 package com.groupGreen.ProvenanceCollector;
 
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -12,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -34,6 +37,8 @@ public class DataSender implements InsertData {
     @Value("${pgrest.endpoints.resources}")
     private String postgrestResourcesEndpoint;
 
+    @Value("${pgrest.endpoints.resources_time_series}")
+    private String postgrestResourcesTimeSeriesEndpoint;
     private final WebClient webClient;
 
     public DataSender(WebClient.Builder webClientBuilder) {
@@ -143,8 +148,48 @@ public class DataSender implements InsertData {
                 }
             })
             .subscribe();
+    }
 
-    } 
-     
+
+    public void sendResourcesTimeSeries(WorkflowTask task) {
+        JSONArray timeSeriesMetricsData = new JSONArray();
+
+        Map<String, List<TimeSeriesDataPoint>> timeSeriesMetrics = task.getTimeSeriesMetrics();
+
+        for(Map.Entry<String, List<TimeSeriesDataPoint>> metric : timeSeriesMetrics.entrySet()) {
+            String metricName = metric.getKey();
+            List<TimeSeriesDataPoint> dataPoints = metric.getValue();
+
+            for(TimeSeriesDataPoint dataPoint : dataPoints) {
+                JSONObject row = new JSONObject();
+                row.put("metric_name", metricName);
+                row.put("pod_id", task.getPod());
+                row.put("unix_time", dataPoint.getTimestamp());
+                row.put("metric_value", dataPoint.getValue());
+                timeSeriesMetricsData.put(row);
+            }
+        }
+
+        logger.info("Sending time series metrics data: {}", timeSeriesMetricsData);
+
+        webClient.post()
+                .uri(uriBuilder -> uriBuilder.scheme("http").host(postgrestServerUrl).port(postgrestServerPort).path(postgrestResourcesTimeSeriesEndpoint).build())
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .bodyValue(timeSeriesMetricsData.toString())
+                .retrieve()
+                .bodyToMono(String.class)
+//            .doOnSuccess(response -> logger.info("Sent metrics: {}", metricsData))
+                .doOnError(error -> {
+                    if (error instanceof WebClientResponseException) {
+                        WebClientResponseException ex = (WebClientResponseException) error;
+                        logger.error("Error sending time series metrics. Status: {}, Body: {}", ex.getRawStatusCode(), ex.getResponseBodyAsString());
+                    } else {
+                        logger.error("Error sending time series metrics: {}", error.getMessage());
+                    }
+                })
+                .subscribe();
+
+    }
+
 
 }

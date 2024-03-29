@@ -4,7 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Setter
@@ -29,6 +31,8 @@ public class WorkflowTask {
 
     private Map<String, Double> metrics = new HashMap<>();
 
+    private Map<String, List<TimeSeriesDataPoint>> timeSeriesMetrics = new HashMap<>();
+
     public WorkflowTask(String pod) {
         setPod(pod);
     }
@@ -45,6 +49,10 @@ public class WorkflowTask {
 
     public void putMetric(String metric, Double value) {
         metrics.put(metric, value);
+    }
+
+    public void putTimeSeriesMetric(String metric, List<TimeSeriesDataPoint> dataPoints) {
+        timeSeriesMetrics.put(metric, dataPoints);
     }
 
     public String toString() {
