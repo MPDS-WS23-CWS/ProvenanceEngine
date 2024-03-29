@@ -1,4 +1,6 @@
-## prepare container
+This is the ProvenanceCollector Spring application.
+
+## Build container
 ```
 ./gradlew bootBuildImage
 docker tag provenance-collector:0.0.1-SNAPSHOT <DOCKERHUB_ACCOUNT>/provenance-collector

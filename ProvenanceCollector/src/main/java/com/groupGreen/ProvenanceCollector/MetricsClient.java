@@ -14,7 +14,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.apache.commons.text.StringSubstitutor;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -51,13 +50,6 @@ public class MetricsClient {
         this.webClient = webClientBuilder.build();
     }
 
-    @PostConstruct
-    private void postConstruct() {
-        if (Boolean.parseBoolean(System.getenv("LOCAL_DEPLOY"))) {
-            this.prometheusServerUrl = "localhost";
-        }
-    }
-
     public List<WorkflowTask> fetchNewData() {
         logger.info("Fetching newly completed tasks");
         List<WorkflowTask> newlyCompletedTasks = fetchNewlyCompletedTasks();
@@ -79,7 +71,7 @@ public class MetricsClient {
         for (WorkflowTask task : newlyCompletedTasks) {
             dataSender.sendTasks(task);
             dataSender.sendResources(task);
-//            dataSender.sendResourcesTimeSeries(task);
+            dataSender.sendResourcesTimeSeries(task);
         }
 
         List<String> pods = newlyCompletedTasks.stream().map(WorkflowTask::getPod).toList();
@@ -270,7 +262,6 @@ public class MetricsClient {
         return times;
     }
 
-    // TODO Check if data type double is okay for all metrics
     private Map<String, Double> parseMetric(String jsonString) {
         Map<String, Double> values = new HashMap<>();
 
@@ -296,7 +287,6 @@ public class MetricsClient {
             JSONObject metric = result.getJSONObject(i).getJSONObject("metric");
             String pod = metric.getString("pod");
             JSONArray valuesArray = result.getJSONObject(i).getJSONArray("values");
-            logger.info(valuesArray.toString());
 
             List<TimeSeriesDataPoint> dataPoints = new ArrayList<>();
             for (int j = 0; j < valuesArray.length(); j++) {

@@ -13,8 +13,6 @@ import java.util.Map;
 @Getter
 public class WorkflowTask {
 
-    // TODO: add fields like workflowID, nodeAssigned, terminationReason and whatever is needed as metadata
-
     private String pod; // in db: pod_id
 
     private String workflowID;
@@ -33,18 +31,9 @@ public class WorkflowTask {
 
     private Map<String, List<TimeSeriesDataPoint>> timeSeriesMetrics = new HashMap<>();
 
-    public WorkflowTask(String pod) {
-        setPod(pod);
-    }
-
     public WorkflowTask(String pod, long completionTime) {
         setPod(pod);
         setCompletionTime(completionTime);
-    }
-
-//  Lets evaluate if the row format with is how we process the data
-    public String getMetricsAsJson() {
-        return new JSONObject(metrics).toString();
     }
 
     public void putMetric(String metric, Double value) {
@@ -56,7 +45,11 @@ public class WorkflowTask {
     }
 
     public String toString() {
-        return "{pod: " + getPod() + ", processName: " + getProcessName() + ", startTime: " + getStartTime() + ", endTime: " + getCompletionTime() + ", metrics: " + getMetrics() + "}";
+        return "{pod: " + getPod()
+                + ", processName: " + getProcessName()
+                + ", startTime: " + getStartTime()
+                + ", endTime: " + getCompletionTime()
+                + ", metrics: " + getMetrics() + "}";
     }
 
     public boolean startTimeSet () {
