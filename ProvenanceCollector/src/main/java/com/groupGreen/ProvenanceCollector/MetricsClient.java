@@ -67,7 +67,6 @@ public class MetricsClient {
         fetchMetrics(newlyCompletedTasks);
         fetchTimeSeriesMetrics(newlyCompletedTasks);
 
-        // send the data to pgrest
         for (WorkflowTask task : newlyCompletedTasks) {
             dataSender.sendTasks(task);
             dataSender.sendResources(task);

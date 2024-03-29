@@ -3,6 +3,7 @@ package com.groupGreen.ProvenanceCollector;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.http.HttpHeaders;
@@ -39,7 +40,11 @@ public class DataSender {
     private final WebClient webClient;
 
     public DataSender(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.build();
+        final int size = 256 * 1024 * 1024;
+        final ExchangeStrategies strategies = ExchangeStrategies.builder()
+                .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(size))
+                .build();
+        this.webClient = webClientBuilder.exchangeStrategies(strategies).build();
     }
 
 

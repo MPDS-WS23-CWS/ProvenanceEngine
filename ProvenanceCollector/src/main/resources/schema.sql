@@ -44,26 +44,3 @@ CREATE TABLE IF NOT EXISTS resources_time_series (
     metric_value DOUBLE PRECISION,
     db_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- -- -- Creating nodes table 
--- CREATE TABLE IF NOT EXISTS node_metrics (
---     node_id SERIAL PRIMARY KEY,
---     node_name VARCHAR(255) UNIQUE NOT NULL,
---     system_user VARCHAR(255),
---     cpu_architecture VARCHAR(255),  
---     operating_system VARCHAR(255),  
---     kernel_version VARCHAR(255),  
---     processor_type VARCHAR(255),  
---     total_cpu_cores INT,  
---     threads_per_core INT, 
---     cpu_utilization_percentage DOUBLE PRECISION,  
---     total_memory_gb DOUBLE PRECISION,  
---     ram_type VARCHAR(255),  
---     used_memory_gb DOUBLE PRECISION, 
---     network_bandwidth_mbps DOUBLE PRECISION, 
---     disk_space_gb DOUBLE PRECISION,  
---     disk_used_gb DOUBLE PRECISION,   
---     uptime_seconds BIGINT,  
---     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
--- );
-

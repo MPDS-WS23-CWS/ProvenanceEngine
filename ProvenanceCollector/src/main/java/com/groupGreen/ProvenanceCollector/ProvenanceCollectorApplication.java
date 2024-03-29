@@ -1,5 +1,6 @@
 package com.groupGreen.ProvenanceCollector;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 @SpringBootApplication
 @EnableScheduling
 public class ProvenanceCollectorApplication {
-
     @Autowired
     private ConfigurableApplicationContext context;
 
@@ -29,7 +29,6 @@ public class ProvenanceCollectorApplication {
 
     @Bean
     // avoid DataBufferLimitException
-    // https://stackoverflow.com/questions/59735951/databufferlimitexception-exceeded-limit-on-max-bytes-to-buffer-webflux-error
     public WebClient webClient() {
         final int size = 256 * 1024 * 1024;
         final ExchangeStrategies strategies = ExchangeStrategies.builder()
