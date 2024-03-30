@@ -50,7 +50,6 @@ public class DataSender {
 
     public void sendWorkflows(Workflow workflow) {
         JSONObject workflowData = new JSONObject();
-
         workflowData.put("workflow_id", workflow.getWorkflowID());
     
         logger.info("Sending workflow data: {}", workflowData);

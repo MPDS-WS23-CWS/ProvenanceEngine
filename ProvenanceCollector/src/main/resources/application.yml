@@ -38,7 +38,7 @@ spring:
 # Metrics
 # {RANGE} is a placeholder for the promql range. It will be automatically replaced by the value of the
 # 'prometheusRange' variable defined in MetricsClient. It is applied to both the queries defined here and the hardcoded
-# ones in MetricsClient. Alternatively, any valid promql time duration can be defined here.
+# ones in MetricsClient. This ensures that all queries refer to the same range.
 metrics:
   resources:
 #    cpu_max: "rate(max_over_time(container_cpu_user_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])[{RANGE}:]) * 100"
