@@ -5,7 +5,7 @@ metadata:
   # Name the volume chain
   name: db-persistent-volume-claim
 spec:
-  storageClassName: manual
+  storageClassName: rook-cephfs
   accessModes:
     # Allow ReadWrite to multiple pods
     - ReadWriteMany
