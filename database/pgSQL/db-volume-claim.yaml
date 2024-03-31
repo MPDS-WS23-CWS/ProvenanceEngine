@@ -13,4 +13,4 @@ spec:
   resources:
     requests:
       # the PVC storage
-      storage: 8Gi
+      storage: 30Gi
