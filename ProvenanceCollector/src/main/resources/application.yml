@@ -5,7 +5,6 @@ server:
 # Prometheus
 prometheus:
   server:
-#    url: localhost
     url: prometheus-service.monitoring.svc.cluster.local
     port: 9090
     endpoint: "/api/v1/query"
@@ -13,7 +12,6 @@ prometheus:
 # postgREST
 pgrest:
   server:
-#    url: localhost
     url: postgrest-service.db.svc.cluster.local
     port: 3000
   endpoints:
@@ -29,7 +27,6 @@ spring:
       mode: always
       schema-locations: classpath:schema.sql
   datasource:
-#    url: jdbc:postgresql://localhost:5432/testDB
     url: jdbc:postgresql://postgresdb.db.svc.cluster.local:5432/testDB
     username: testUser
     password: testPassword
@@ -41,10 +38,9 @@ spring:
 # ones in MetricsClient. This ensures that all queries refer to the same range.
 metrics:
   resources:
-#    cpu_max: "rate(max_over_time(container_cpu_user_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])[{RANGE}:]) * 100"
-    cpu_max: "sum by(pod)(max_over_time(container_cpu_usage_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
-    cpu_min: "sum by(pod)(min_over_time(container_cpu_usage_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
-    cpu_avg: "sum by(pod)(avg_over_time(container_cpu_usage_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    cpu_max: "rate(max_over_time(container_cpu_user_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])[200h:]) * 100"
+    cpu_min: "rate(min_over_time(container_cpu_user_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])[200h:]) * 100"
+    cpu_avg: "rate(avg_over_time(container_cpu_user_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])[200h:]) * 100"
     mem_max: "sum by(pod)(max_over_time(container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
     mem_min: "sum by(pod)(min_over_time(container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
     mem_avg": "sum by(pod)(avg_over_time(container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
