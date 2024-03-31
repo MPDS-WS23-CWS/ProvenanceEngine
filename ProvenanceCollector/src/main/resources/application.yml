@@ -1,0 +1,53 @@
+# Port for the ProvCollector to start on
+server:
+  port: 8083
+
+# Prometheus
+prometheus:
+  server:
+    url: prometheus-service.monitoring.svc.cluster.local
+    port: 9090
+    endpoint: "/api/v1/query"
+
+# postgREST
+pgrest:
+  server:
+    url: postgrest-service.db.svc.cluster.local
+    port: 3000
+  endpoints:
+    workflows: "/workflows"
+    tasks: "/tasks"
+    resources: "/resources"
+    resources_time_series: "/resources_time_series"
+
+# JDBCw
+spring:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+  datasource:
+    url: jdbc:postgresql://postgresdb.db.svc.cluster.local:5432/testDB
+    username: testUser
+    password: testPassword
+    driver-class-name: org.postgresql.Driver
+
+# Metrics
+# {RANGE} is a placeholder for the promql range. It will be automatically replaced by the value of the
+# 'prometheusRange' variable defined in MetricsClient. It is applied to both the queries defined here and the hardcoded
+# ones in MetricsClient. This ensures that all queries refer to the same range.
+metrics:
+  resources:
+    cpu_max: "rate(max_over_time(container_cpu_user_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])[200h:]) * 100"
+    cpu_min: "rate(min_over_time(container_cpu_user_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])[200h:]) * 100"
+    cpu_avg: "rate(avg_over_time(container_cpu_user_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}])[200h:]) * 100"
+    mem_max: "sum by(pod)(max_over_time(container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    mem_min: "sum by(pod)(min_over_time(container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    mem_avg": "sum by(pod)(avg_over_time(container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    fs_reads_total: "sum by(pod)(max_over_time(container_fs_reads_bytes_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+    fs_writes_total: "sum by(pod)(max_over_time(container_fs_writes_bytes_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]))"
+  resources_time_series:
+    cpu: "container_cpu_usage_seconds_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]"
+    mem: "container_memory_working_set_bytes{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]"
+    fs_reads_total: "container_fs_reads_bytes_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]"
+    fs_writes_total: "container_fs_reads_bytes_total{namespace='cws',pod=~'nf-.*',container=~'nf-.*'}[{RANGE}]"

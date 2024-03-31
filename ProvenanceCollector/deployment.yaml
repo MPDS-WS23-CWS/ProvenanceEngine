@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: provenance-collector
+  name: provenance-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: provenance-collector
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: provenance-collector
+    spec:
+      containers:
+      - name: provenance-collector
+        # env:
+        # - name: LOCAL_DEPLOY
+        #   value: "false"
+        image: leshl/provenance-collector
+        imagePullPolicy: Always
+        resources: {}
+
+    # nodeSelector: 
+    #   cwsscheduler: 'true'
+status: {}
