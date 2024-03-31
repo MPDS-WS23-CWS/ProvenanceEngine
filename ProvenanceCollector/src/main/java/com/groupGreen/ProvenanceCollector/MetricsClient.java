@@ -40,7 +40,7 @@ public class MetricsClient {
     @Autowired
     private DataSender dataSender;
 
-    private String prometheusRange = "200h";
+    private String prometheusRange = "1h";
 
     private List<String> returnedTasks = new ArrayList<>();
 
@@ -148,14 +148,6 @@ public class MetricsClient {
             }
         }
     }
-
-//    private void fetchWorkflowData(Workflow workflow) {
-//        String query = replacePlaceholders("last_over_time(kube_pod_labels{pod=~'nf-.*', }[{RANGE}])");
-//        String result = queryPrometheusBlocking(replacePlaceholders(e.getValue()));
-//        Map<String, Double> metric = parseMetric(result);
-//        tasks.forEach(t -> t.putMetric(e.getKey(), metric.get(t.getPod())));
-//
-//    }
 
     private String queryPrometheusBlocking(String query) {
         MultiValueMap<String, String> bodyValues = new LinkedMultiValueMap<>();
