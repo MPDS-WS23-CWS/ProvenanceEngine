@@ -30,7 +30,7 @@ spec:
               memory: 500M
             limits:
               cpu: 1
-              memory: 1Gi
+              memory: 16Gi
           volumeMounts:
             - name: prometheus-config-volume
               mountPath: /etc/prometheus/
