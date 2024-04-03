@@ -29,7 +29,7 @@ spec:
               cpu: 500m
               memory: 500M
             limits:
-              cpu: 1
+              cpu: 6
               memory: 16Gi
           volumeMounts:
             - name: prometheus-config-volume
